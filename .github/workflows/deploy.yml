@@ -1,0 +1,75 @@
+name: CI-CD Rainfall ML Platform
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-test-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # -----------------------------
+      # Checkout code
+      # -----------------------------
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # -----------------------------
+      # Setup Python
+      # -----------------------------
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # -----------------------------
+      # Install dependencies
+      # -----------------------------
+      - name: Install dependencies
+        run: |
+          python -m venv venv
+          source venv/bin/activate
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # -----------------------------
+      # Run basic checks (CI)
+      # -----------------------------
+      - name: Run sanity checks
+        run: |
+          source venv/bin/activate
+          python - <<EOF
+          import pandas as pd
+          from src.features.feature_builder import FeatureBuilder
+
+          df = pd.DataFrame([{
+              "date": "2024-01-01",
+              "temperature_c": 30,
+              "humidity_percent": 70,
+              "wind_speed_ms": 3,
+              "sea_level_pressure_hpa": 1010
+          }])
+
+          fb = FeatureBuilder()
+          out = fb.build(df, mode="infer")
+          assert len(out) == 1
+          print("FeatureBuilder OK")
+          EOF
+
+      # -----------------------------
+      # Deploy to EC2 (CD)
+      # -----------------------------
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_KEY }}
+          script: |
+            cd ${{ secrets.PROJECT_DIR }}
+            git pull origin main
+            source venv/bin/activate
+            pip install -r requirements.txt
+            sudo systemctl restart rainfall

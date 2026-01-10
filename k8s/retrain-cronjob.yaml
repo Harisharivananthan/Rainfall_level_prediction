@@ -1,0 +1,15 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: ml-retrain
+spec:
+  schedule: "0 2 * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: retrain
+              image: flood-risk-ml
+              command: ["python", "src/models/retrain_pipeline.py"]
+          restartPolicy: OnFailure

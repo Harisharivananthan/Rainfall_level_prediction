@@ -1,0 +1,10 @@
+fastapi
+uvicorn[standard]
+jinja2
+pandas
+numpy
+scikit-learn
+joblib
+prometheus-client
+pydantic
+tensorflow-cpu

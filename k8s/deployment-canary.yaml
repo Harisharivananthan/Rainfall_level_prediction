@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flood-risk-canary
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flood-risk
+  template:
+    metadata:
+      labels:
+        app: flood-risk
+    spec:
+      containers:
+        - name: api
+          image: flood-risk-ml:v2
+          ports:
+            - containerPort: 8000

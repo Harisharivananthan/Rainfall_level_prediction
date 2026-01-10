@@ -1,0 +1,8 @@
+bootstrap_servers: "localhost:9092"
+
+topics:
+  weather_input: "weather.raw"
+  predictions: "weather.predictions"
+  drift: "weather.drift"
+
+consumer_group: "flood-risk-consumer"
